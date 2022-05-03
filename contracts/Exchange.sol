@@ -28,25 +28,21 @@ contract Exchange is ERC20 {
                                 STAKING
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Stake
     function addLiquidity(uint amount) public payable returns (uint liquidity) {
         uint tokensIn;
 
-        // Check if there is no existing liquidty 
         if (totalSupply == 0 ) {
             tokensIn = amount;
 
             liquidity = msg.value;
         } else {
-            // Assign pre-existing ETH reserve
             uint ethReserve = address(this).balance - msg.value;
 
-            // Calculate the amount of tokens to be staked based on current reserves and incoming ETH
             tokensIn = msg.value * erc20Reserve() / ethReserve;
 
-            // Calculate amount of LP tokens incoming stake is worth
             liquidity = msg.value * totalSupply / ethReserve;
         }
-        // Require amount of tokens sent is equal or greater than the amount of tokens accepted
         require(amount >= tokensIn, "INSUFFICIENT_AMOUNT!");
 
         erc20.transferFrom(msg.sender, address(this), tokensIn);
@@ -57,13 +53,10 @@ contract Exchange is ERC20 {
     /// @notice Redeem
     /// @param amount Amount of LP tokens used to redeem
     function removeLiquidity(uint amount) public returns (uint eth, uint _erc20) {
-        // Require non-zero amount of LP tokens
         require(amount > 0, "INSUFFICIENT_LP_TOKENS!");
 
-        // Calculate ETH to be redeemed
         eth = amount * address(this).balance / totalSupply; 
 
-        // Calulate ERC-20 tokens to be redeemed
         _erc20 = amount * erc20Reserve() / totalSupply; 
 
         _burn(msg.sender, amount);
@@ -140,9 +133,6 @@ contract Exchange is ERC20 {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Calculate amount of tokens to be swapped out of vault
-    /// @param inAmount Number of tokens user is swapping
-    /// @param inReserve Reserve of tokens user is swapping
-    /// @param outReserve Reserve of tokens user wants to receive 
     function tokensOut(
         uint inAmount, 
         uint inReserve, 
